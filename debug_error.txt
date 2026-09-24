@@ -1,0 +1,3 @@
+warn: Resource x86-linux-kernel-5.4.49 is not compatible with gem5 version 25.1.0.1.
+warn: Resource x86-parsec is not compatible with gem5 version 25.1.0.1.
+warn: Resource x86-linux-kernel-5.4.49 is not compatible with gem5 version 25.1.0.1.

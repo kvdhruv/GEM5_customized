@@ -1,0 +1,4 @@
+cd /home/gem5/parsec-benchmark
+source env.sh
+parsecmgmt -a run -p canneal -c gcc-hooks -i simsmall -n 16
+m5 exit
