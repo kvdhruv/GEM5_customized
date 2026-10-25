@@ -1072,6 +1072,7 @@ RoutingUnit::outportComputeDyXY(RouteInfo route,
 
 // Template for implementing custom routing algorithm
 // using port directions. (Example adaptive)
+
 // int
 // RoutingUnit::outportComputeCustom(RouteInfo route,
 //                                  int inport,

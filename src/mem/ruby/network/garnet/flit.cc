@@ -61,6 +61,10 @@ flit::flit(int packet_id, int id, int  vc, int vnet, RouteInfo route, int size,
     m_width = bWidth;
     msgSize = MsgSize;
 
+    m_addr = 0;
+    // m_type = 0; // dhruv
+    m_path_string = "";
+
     if (size == 1) {
         m_type = HEAD_TAIL_;
         return;

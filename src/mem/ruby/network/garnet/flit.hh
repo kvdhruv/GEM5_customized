@@ -119,6 +119,18 @@ class flit
 
     uint32_t m_width;
     int msgSize;
+
+    inline void set_addr(uint64_t addr) { m_addr = addr; }
+    inline uint64_t get_addr() const { return m_addr; }
+    inline void set_path_string(std::string path) { m_path_string = path; }
+    inline std::string get_path_string() const { return m_path_string; } // custom path printing. dhruv.
+    
+    // inline void set_type(int type) { m_type = type; }
+    inline int get_type() const { return m_type; } // dhruv -> flit modifications to hold addresses.
+    private:
+    uint64_t m_addr;
+    // int m_type;
+    std::string m_path_string;
   protected:
     int m_packet_id;
     int m_id;

@@ -51,22 +51,28 @@ VirtualChannel::VirtualChannel()
     active_ticks(0),
     allocation_count(0)
 {
-    // NEW: Register a callback to dump our formatted stats exactly when stats.txt is generated       -> dhruv.
+    // Register a callback to dump our formatted stats exactly when stats.txt is generated -> dhruv.
     gem5::statistics::registerDumpCallback([this]() {
         std::ofstream vc_out;
-        // Changing to .txt since we are adding descriptive text
         vc_out.open("m5out/vc_summary.txt", std::ios_base::app); 
-        
         if (vc_out.is_open()) {
-            Tick total_ticks = this->idle_ticks + this->active_ticks;
+            Tick current_time = gem5::curTick();
+            Tick final_idle = this->idle_ticks;
+            Tick final_active = this->active_ticks;
             
-            // Only print if the VC was actually instantiated and tracked
+            // Add the pending time from the current state
+            if (this->m_vc_state.first == IDLE_) {
+                final_idle += (current_time - this->last_state_change_tick);
+            } else {
+                final_active += (current_time - this->last_state_change_tick);
+            }
+
+            Tick total_ticks = final_idle + final_active;
             if (total_ticks > 0) { 
-                double idle_percent = ((double)this->idle_ticks / total_ticks) * 100.0;
-                
+                double idle_percent = ((double)final_idle / total_ticks) * 100.0;
                 vc_out << "VC_Ptr: " << this 
-                       << " | Idle_Ticks: " << this->idle_ticks 
-                       << " | Active_Ticks: " << this->active_ticks 
+                       << " | Idle_Ticks: " << final_idle 
+                       << " | Active_Ticks: " << final_active 
                        << " | Allocations: " << this->allocation_count 
                        << " | Idle_Percent: " << idle_percent << "%\n";
             }

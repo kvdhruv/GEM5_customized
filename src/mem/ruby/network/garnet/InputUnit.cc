@@ -81,6 +81,9 @@ InputUnit::wakeup()
 
         t_flit = m_in_link->consumeLink();
         // BOFAR: Stamp the exact Tick the flit enters this router's buffer
+
+        t_flit->set_path_string(t_flit->get_path_string() + std::to_string(m_router->get_id()) + " -> "); // Custom_path printing
+        
         t_flit->set_router_arrival_time(curTick());
         DPRINTF(RubyNetwork, "Router[%d] Consuming:%s Width: %d Flit:%s\n",
         m_router->get_id(), m_in_link->name(),

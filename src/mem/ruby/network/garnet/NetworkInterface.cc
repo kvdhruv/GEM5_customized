@@ -43,6 +43,9 @@
 #include "mem/ruby/slicc_interface/Message.hh"
 #include "mem/ruby/system/RubySystem.hh"
 #include <cstdlib>
+#include <sstream>
+#include <string> // dhruv -> for string parsing -> cache line addresses.
+#include <fstream>
 
 namespace gem5
 {
@@ -255,6 +258,20 @@ NetworkInterface::wakeup()
                     Credit *cFlit = new Credit(t_flit->get_vc(),
                                                true, curTick());
                     iPort->sendCredit(cFlit);
+
+                    // ----------------------------------------------------
+                    // NEW: Log the delivered packet, address, and path
+                    // ----------------------------------------------------
+                    std::ofstream path_out;
+                    path_out.open("m5out/custom_packet_paths.txt", std::ios_base::app);
+                    if (path_out.is_open()) {
+                        path_out << "[DATA_DELIVERED] Addr: 0x" << std::hex << t_flit->get_addr() << std::dec 
+                                 << " | Packet ID: " << t_flit->get_id() 
+                                 << " | Path: " << t_flit->get_path_string() << "Dest_NI_" << m_id << "\n";
+                        path_out.close();
+                    }
+                    // ----------------------------------------------------
+
                     // Update stats and delete flit pointer
                     incrementStats(t_flit);
                     delete t_flit;
@@ -374,6 +391,32 @@ NetworkInterface::checkStallQueue()
 bool
 NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
 {
+
+    // ---------------------------------------------------- dhruv
+    // Extract physical memory address into the NoC flit
+    std::stringstream ss;
+    msg_ptr->print(ss);
+    std::string msg_str = ss.str();
+    uint64_t extracted_addr = 0;
+
+    // SLICC messages typically print something like "[RequestMsg: addr = 0x1040 ...]"
+    size_t addr_pos = msg_str.find("addr"); 
+    if (addr_pos == std::string::npos) {
+        addr_pos = msg_str.find("Address"); 
+    }
+    
+    if (addr_pos != std::string::npos) {
+        // Find the hexadecimal marker
+        size_t hex_pos = msg_str.find("0x", addr_pos);
+        if (hex_pos != std::string::npos) {
+            // std::stoull gracefully reads until the first non-hex character (like a comma)
+            extracted_addr = std::stoull(msg_str.substr(hex_pos), nullptr, 16);
+        }
+    }
+    
+    // fl->set_addr(extracted_addr);
+    // ----------------------------------------------------
+
     Message *net_msg_ptr = msg_ptr.get();
     NetDest net_msg_dest = net_msg_ptr->getDestination();
 
@@ -461,6 +504,9 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
                 m_net_ptr->MessageSizeType_to_int(
                 net_msg_ptr->getMessageSize()),
                 oPort->bitWidth(), curTick());
+
+            fl->set_addr(extracted_addr);
+            fl->set_path_string("Src_NI_" + std::to_string(m_id) + " -> "); // custom path. 
 
             fl->set_src_delay(curTick() - msg_ptr->getTime());
             niOutVcs[vc].insert(fl);

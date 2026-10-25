@@ -46,6 +46,8 @@
 #include "mem/ruby/network/garnet/Router.hh"
 #include "mem/ruby/system/RubySystem.hh"
 
+#include <fstream> // to clear the vc_summary files for every simulation. 
+
 namespace gem5
 {
 
@@ -64,6 +66,10 @@ namespace garnet
 GarnetNetwork::GarnetNetwork(const Params &p)
     : Network(p)
 {
+
+    std::ofstream wipe_vc("m5out/vc_summary.txt", std::ios_base::trunc);
+    std::ofstream wipe_path("m5out/custom_packet_paths.txt", std::ios_base::trunc); // clearing custom files. 
+
     m_num_rows = p.num_rows;
     m_ni_flit_size = p.ni_flit_size;
     m_max_vcs_per_vnet = 0;
